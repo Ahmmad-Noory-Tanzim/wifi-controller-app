@@ -1,10 +1,10 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Image, Text } from "react-native";
 import Toast from "react-native-toast-message";
 import axios from "axios";
 
 export default function App() {
-  const pcIp = "192.168.0.148"; // your PC IP
+  const pcIp = "192.168.1.245"; // your PC IP
   const baseUrl = `http://${pcIp}:8080/cmd`;
 
   const openUrl = async (url, label) => {
@@ -24,67 +24,58 @@ export default function App() {
     }
   };
 
-  const fullscreen = async () => {
+  const mute = async () => {
     try {
-      await axios.get(`${baseUrl}/fullscreen`);
-      Toast.show({ type: "info", text1: "Fullscreen triggered" });
+      await axios.get(`${baseUrl}/mute`);
+      Toast.show({ type: "info", text1: "mute triggered" });
     } catch (e) {
       Toast.show({
         type: "error",
-        text1: "Failed to trigger fullscreen",
+        text1: "Failed to trigger mute",
         text2: e.message,
       });
     }
   };
 
-    const mute = async () => {
+    const shutdown = async () => {
       try {
-        await axios.get(`${baseUrl}/mute`);
-        Toast.show({ type: "info", text1: "Mute triggered" });
+        await axios.get(`${baseUrl}/shutdown`);
+        Toast.show({ type: "info", text1: "shutdown triggered" });
       } catch (e) {
         Toast.show({
           type: "error",
-          text1: "Failed to trigger Mute",
+          text1: "Failed to trigger shutdown",
           text2: e.message,
         });
       }
     };
+
+    const buttons = [
+      { label: "Shomoy", icon: require('./assets/icons/shomoy.png'), url: "https://youtu.be/TdwhCOFh9OA" },
+      { label: "DBC", icon: require('./assets/icons/dbc.png'), url: "https://youtu.be/7xoFz5czzjA" },
+      { label: "Mute", emoji: "⛶", action: mute },
+      { label: "ShutDown", emoji: "📺", action: shutdown },
+    ];    
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🖥️ Wi-Fi PC Controller</Text>
 
       <View style={styles.row}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() =>
-            openUrl("https://www.youtube.com/watch?v=TdwhCOFh9OA", "Shomoy TV")
-          }
-        >
-          <Text style={styles.icon}>📺</Text>
-          <Text style={styles.label}>Shomoy</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() =>
-            openUrl("https://www.youtube.com/watch?v=7xoFz5czzjA", "DBC News")
-          }
-        >
-          <Text style={styles.icon}>📰</Text>
-          <Text style={styles.label}>DBC</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.iconButton} onPress={fullscreen}>
-          <Text style={styles.icon}>⛶</Text>
-          <Text style={styles.label}>Full</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.iconButton} onPress={mute}>
-          <Text style={styles.icon}>📺</Text>
-          <Text style={styles.label}>Mute</Text>
-        </TouchableOpacity>
-
+        {buttons.map((btn, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.iconButton}
+            onPress={() => {
+              if (btn.url) openUrl(btn.url, btn.label);
+              else if (btn.action) btn.action();
+            }}
+          >
+            {btn.icon && <Image source={btn.icon} style={styles.icon} />}
+            {btn.emoji && <Text style={styles.icon}>{btn.emoji}</Text>}
+            <Text style={styles.label}>{btn.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <Toast />
@@ -107,13 +98,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "center",
+    flexWrap: "wrap",
     gap: 25,
   },
   iconButton: {
     alignItems: "center",
   },
   icon: {
-    fontSize: 40,
+    width: 64,          // for image icons
+    height: 64,         // for image icons
+    fontSize: 40,       // for emojis
+    resizeMode: "contain",
+    alignSelf: "center",
   },
   label: {
     color: "white",
